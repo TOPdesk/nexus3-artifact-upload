@@ -10,6 +10,7 @@
 
 <a name="installation"/>
 ## Installation
+
 Out goal was to make installation as easy as possible: you need to *host* the **index.html** file on your Nexus 3 installation in a raw repository, that has public access. Yes, that is all.
 
 #### Example:
@@ -25,12 +26,14 @@ Out goal was to make installation as easy as possible: you need to *host* the **
 
 <a name="usage"/>
 ## Usage
+
 Visit `https://nexus.mycompany.com/nexus/repository/utils/uploader` and enjoy the integrated artifact uploader.
 
 You can pick a repository, browse (or drop) a file, fill in the details, and press the upload button.
 
 <a name="contributing"/>
 ## Contributing
+
 By all means! If you have a fix or an improvement, pull requests are welcome. We are also happy to get any feedback.
 
 <a name="known_issues"/>
