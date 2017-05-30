@@ -2,16 +2,13 @@
 > A drop-in solution for the missing artifact upload UI for [Sonatype Nexus 3 Repository](https://www.sonatype.com/nexus-repository-oss).
 
 ## Table of Contents
-
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
-- [Known issues](#known_issues)
+- [Known issues](#known-issues)
 - [License](#license)
 
-<a name="installation"/>
 ## Installation
-
 Out goal was to make installation as easy as possible: you need to *host* the **index.html** file on your Nexus 3 installation in a raw repository, that has public access. Yes, that is all.
 
 #### Example:
@@ -25,19 +22,14 @@ Out goal was to make installation as easy as possible: you need to *host* the **
   Note that user and password sould be an account that has write access to the utils repositroy.
 - Done
 
-<a name="usage"/>
+
 ## Usage
-
 Visit `https://nexus.mycompany.com/nexus/repository/utils/uploader` and enjoy the integrated artifact uploader.
-
 You can pick a repository, browse (or drop) a file, fill in the details, and press the upload button.
 
-<a name="contributing"/>
 ## Contributing
-
 By all means! If you have a fix or an improvement, pull requests are welcome. We are also happy to get any feedback.
 
-<a name="known_issues"/>
 ## Known issues
 - This is really a basic implementation, some useful features are missing. You can upload files with Maven's GAV style, or do raw uploads to any other repository (in this case you need to know the proper URL).
 - Input is not validated, it will try to upload with specified settings, and you will have a success, or an error based on what you did.
@@ -54,7 +46,6 @@ By all means! If you have a fix or an improvement, pull requests are welcome. We
 - PRO 3.2.1-01
 - OSS 3.3.1-01
 
-<a name="license"/>
 ## License
 <pre>MIT License
 
