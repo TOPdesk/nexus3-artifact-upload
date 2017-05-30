@@ -1,6 +1,8 @@
 # Nexus 3 Artifact Upload [![Build Status](https://travis-ci.org/TOPdesk/nexus3-artifact-upload.svg?branch=master)](https://travis-ci.org/TOPdesk/nexus3-artifact-upload)
 > A drop-in solution for the missing artifact upload UI for [Sonatype Nexus 3 Repository](https://www.sonatype.com/nexus-repository-oss).
 
+![Screenshot](screenshot.png "Screenshot")
+
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
