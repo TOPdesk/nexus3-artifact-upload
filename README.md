@@ -9,7 +9,7 @@
 - [License](#license)
 
 ## Installation
-Out goal was to make installation as easy as possible: you need to *host* the **index.html** file on your Nexus 3 installation in a raw repository, that has public access. Yes, that is all.
+Our goal was to make installation as easy as possible: you need to *host* the *index.html* file on your Nexus 3 installation in a raw repository, that has public access. Yes, that is all.
 
 #### Example:
 - Consider having your Nexus 3 running at `https://nexus.mycompany.com/nexus` and a *raw* repository identified as `utils`
