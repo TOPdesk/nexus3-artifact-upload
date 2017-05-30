@@ -21,7 +21,7 @@ Our goal was to make installation as easy as possible: you need to *host* the *i
          --upload-file index.html \
          https://nexus.mycompany.com/nexus/repository/utils/uploader
   ```
-  Note that user and password sould be an account that has write access to the utils repositroy.
+  Note that user and password should be an account that has write access to the utils repositroy.
 - Done
 
 
