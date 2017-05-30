@@ -16,7 +16,9 @@ Out goal was to make installation as easy as possible: you need to *host* the **
 - Consider having your Nexus 3 running at `https://nexus.mycompany.com/nexus` and a *raw* repository identified as `utils`
 - Grab the `index.html` and upload it with `curl` (or whatever you like):
   ```bash
-  $ curl -u <user>:<password> --upload-file index.html https://nexus.mycompany.com/nexus/repository/utils/uploader
+  $ curl -u <user>:<password> \
+    --upload-file index.html \
+    https://nexus.mycompany.com/nexus/repository/utils/uploader
   ```
   Note that user and password sould be an account that has write access to the utils repositroy.
 - Done
