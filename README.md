@@ -2,6 +2,7 @@
 > A drop-in solution for the missing artifact upload UI for [Sonatype Nexus 3 Repository](https://www.sonatype.com/nexus-repository-oss).
 
 ## Table of Contents
+
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
