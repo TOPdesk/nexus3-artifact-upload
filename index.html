@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <!--
+    Host this file in a raw repository on Nexus3 to have the missing Artifact Upload
+    user interface.
+
+    Visit <gitlab url pending> for details.
+
+    Copyright © 2017 TOPdesk
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    -->
+    <title>Upload File - Nexus Repository Manager</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <style type="text/css">
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+    <style class="content" type="text/css">
+      body {
+        background-color: #f4f4f4;
+      }
+      main {
+        background-color: #f4f4f4;
+        color: #333;
+        font-size: 13px;
+        font-family: "Proxima Nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: none;
+      }
+      main > header {
+        padding: 10px 8px 36px 8px;
+        background-color: #fff;
+      }
+      main > header div {
+        display: inline-block;
+        height: 32px
+      }
+      main > header img {
+        vertical-align: top !important;
+      }
+      main > section {
+          padding: 5px 8px 5px 8px;
+          border-top: solid 1px #ddd;
+          border-bottom: solid 1px #ddd;
+      }
+      main section > h1,
+      main section > h2,
+      main section > h3 {
+        display: none;
+      }
+      main > section button {
+        background-color: #f4f4f4;
+        border: solid 1px transparent;
+        color: #006bbf;
+        outline: none;
+        border-radius: 5px;
+        padding: 5px 12px 5px 12px;
+        cursor: pointer;
+      }
+      main > section button:hover {
+        background-color: #ebebeb;
+        border: solid 1px #ddd;
+      }
+      main > section button.selected {
+        background-color: #fff !important;
+        border: solid 1px #fff !important;
+        color: #333 !important;
+      }
+      main > div.content {
+        padding: 12px;
+        margin: 12px;
+        background-color: #fff;
+        display: inline-block;
+        border: solid 1px #ddd;
+      }
+      main > div.content section {
+        margin: 4px 0 4px 0;
+      }
+      main > div.content label {
+        font-weight: bold;
+      }
+      main .drop-target {
+        margin: 0 0 8px 0;
+        padding: 0 1em 0 1em;
+        display: inline-block;
+        color: #2476c3;
+        border: 3px dashed #2476c3;
+        min-width: 350px;
+        text-align: center;
+      }
+      main .drop-target input,
+      main .drop-target label {
+        display: none;
+      }
+      main .drop-target h1 {
+        cursor: pointer;
+        margin-bottom: 5px;
+      }
+      main .drop-target span {
+        max-width: 300px;
+        text-overflow: ellipsis;
+        margin-bottom: 5px;
+        display: inline-block;
+      }
+      main input,
+      main button,
+      main select {
+        font-size: 13px;
+      }
+      main input[type=text] {
+        box-sizing: border-box;
+        min-width: 300px;
+        min-height: 24px;
+        margin: 4px 0 4px 0;
+      }
+      main select {
+        box-sizing: border-box;
+        min-width: 300px;
+        min-height: 24px;
+        margin: 4px 0 0 0;
+      }
+      main section.upload-format header {
+        display: none;
+      }
+      main label {
+        min-width: 80px;
+        display: inline-block;
+      }
+      main section.upload-progress {
+        height: 21px;
+        width: 381px;
+        border: solid 1px silver;
+        overflow: hidden;
+        display: none;
+      }
+      main section.upload-progress div {
+        width: 0;
+        border: 0;
+        height: 21px;
+        background-color: #2476c3;
+      }
+      main section:last-child {
+        text-align: center;
+        margin-bottom: 0;
+      }
+    </style>
+    <script>
+      $(() => {
+        const baseUrl = location.href.substring(0, location.href.indexOf('/repository/'));
+        $('head').append(`<link rel="shortcut icon" type="image/x-icon" href="${baseUrl}/favicon.ico"/>`);
+        createNexusWrapper();
+
+        // Initializes an iframe with Nexus3 Welcome page context, and adds an
+        // iframe to it pointing to this html page.
+        //
+        // The second iframe is necessary to avoid certain errors caused by
+        // Nexus3 JavaScript - like non-working backspace button in inputs.
+        function createNexusWrapper() {
+          if (window.location.hash === '#!content') {
+            initializeUploaderContent($(document).contents());
+          } else {
+            $(`<iframe width="100%" height="100%" frameborder="0" src="${baseUrl}"/>`)
+              .appendTo(document.body)
+              .on('load', (event) => {
+                const nexusFrame = $(event.target);
+                const nexusWindow = nexusFrame.prop('contentWindow');
+
+                // When navigating to other parts of nexus, the main window should be used
+                nexusWindow.addEventListener('hashchange', e => (window.location = e.newURL));
+
+                // When Nexus3 has been loaded to the iframe, delete all other
+                // content, and add an iframe into the Nexus3 frame to load this
+                // page again with "content" hashbang.
+                waitForNexus().then((content) => {
+                  $('main').remove();
+                  $('head style.content').remove();
+
+                  const target = `${window.location.href.replace(window.location.hash, '')}#!content`;
+                  const uploaderFrame = $(`<iframe style="position:absolute;z-index:10000;top:0;left:0;background-color:white" width="100%" height="100%" frameborder="0" src="${target}"/>`);
+                  uploaderFrame.appendTo(content)
+                    .on('error', () => {
+                      // On Firefox the iframe throws an error, and points to
+                      // about:blank instead of the src.
+                      const frameLocation = uploaderFrame.prop('contentWindow').location;
+                      if (frameLocation.href !== target) {
+                        frameLocation.href = target;
+                      }
+                    })
+                    .on('load', () => {
+                      // Add CSS styles and reference to NX to embedded page to
+                      // provide a "native" look and feel for integrated content
+                      const nexusStyles = nexusFrame.contents().find('head style, head link[rel="stylesheet"]');
+                      uploaderFrame.contents().find('head').append(nexusStyles.clone());
+                      uploaderFrame.prop('contentWindow').NX = nexusWindow.NX;
+                    });
+                });
+
+                function waitForNexus() {
+                  return new Promise((resolve) => {
+                    const waitForContent = () => {
+                      const content = nexusFrame.contents().find('.nx-feature-content');
+                      if (content.length > 0) {
+                        resolve(content);
+                      } else {
+                        setTimeout(waitForContent, 200);
+                      }
+                    };
+                    waitForContent();
+                  });
+                }
+              });
+          }
+        }
+
+        /*
+         * Initializes the Artifact Upload controls.
+         */
+        function initializeUploaderContent(context) {
+          const targetUrl = $('input[name=url]', context);
+          const uploadButton = $('button[name=upload]', context);
+          const artifactIdInput = $('input[name=artifactId]', context);
+          const versionInput = $('input[name=version]', context);
+          const classifierInput = $('input[name=classifier]', context);
+          const extensionInput = $('input[name=extension]', context);
+          const repositoryInput = $('input[name=repository]', context);
+          const repositoryDropdown = $('select[name=repository-list]', context);
+          const rawPathInput = $('input[name=path]', context);
+          let fileToUpload = null;
+
+          addEventHandlers();
+          populateRepositoriesCombo();
+          // The timeout is needed for Firefox to show content after it's been
+          // layed out properly
+          setTimeout(() => $('main', context).css('display', 'block'), 100);
+
+
+          function addEventHandlers() {
+            const fileInput = $('input[type=file]', context);
+            const formatRadios = $('input[type=radio][name=format]', context);
+            const gavRadio = $('input[type=radio][value=gav]', context);
+            const rawRadio = $('input[type=radio][value=raw]', context);
+            const dropTarget = $('.drop-target', context);
+            const textInputs = $('input[type=text]', context);
+            const uploadFormatButtons = $('main > section button', context);
+
+            textInputs.on('input', updateTargetUrl);
+
+            formatRadios.on('change', () => {
+              $('section#gav div, section#raw div').css('display', 'none');
+              $('section#gav div, section#raw div').css('display', 'none');
+              uploadFormatButtons.removeClass('selected');
+              switch (formatRadios.filter(':checked').val()) {
+                case 'gav':
+                  $('section#gav div').css('display', 'block');
+                  uploadFormatButtons.filter('[name=gav-toggle]').addClass('selected');
+                  break;
+                case 'raw':
+                default:
+                  $('section#raw div').css('display', 'block');
+                  uploadFormatButtons.filter('[name=raw-toggle]').addClass('selected');
+                  break;
+              }
+              updateTargetUrl();
+            });
+
+            fileInput.on('change', () => setFileToUpload(fileInput.get(0).files[0]));
+            fileInput.on('click', event => event.stopPropagation());
+
+            targetUrl.on('change', () => uploadButton.prop('disabled', !fileToUpload));
+
+            uploadFormatButtons.on('click', (event) => {
+              const format = $(event.target).prop('name').split('-')[0];
+              formatRadios.filter(`[value=${format}]`).prop('checked', true);
+              formatRadios.change();
+            });
+
+            repositoryDropdown.on('change', () => {
+              repositoryInput.val(repositoryDropdown.val());
+              if (repositoryDropdown.find(':selected').data('format') === 'maven2') {
+                gavRadio.prop('checked', true);
+              } else {
+                rawRadio.prop('checked', true);
+              }
+              formatRadios.change();
+              updateTargetUrl();
+            });
+
+            dropTarget.on('dragenter dragover', () => false);
+            dropTarget.on('drop', (event) => {
+              setFileToUpload(event.originalEvent.dataTransfer.files[0]);
+              return false;
+            });
+            dropTarget.on('click', () => fileInput.click() && false);
+
+            uploadButton.on('click', () => uploadFile(fileToUpload, targetUrl.val()) && false);
+          }
+
+          function populateRepositoriesCombo() {
+            $.ajax({
+              url: `${baseUrl}/service/extdirect`,
+              type: 'POST',
+              data: '{"action":"coreui_Repository","method":"readReferences","data":[{"page":1,"start":0,"limit":100,"filter":[{"property":"applyPermissions","value":false}]}],"type":"rpc","tid":0}',
+              contentType: 'application/json',
+              success: (data) => {
+                repositoryDropdown.empty();
+                repositoryInput.css('display', 'none');
+                repositoryDropdown.css('display', 'inline-block');
+                data.result.data.forEach((item) => {
+                  if (item.type === 'hosted') {
+                    repositoryDropdown.append(`<option value="${item.id}" data-format="${item.format}">${item.name}</option>`);
+                  }
+                });
+                repositoryDropdown.change();
+              },
+              error: () => {
+                repositoryDropdown.empty();
+                repositoryDropdown.css('display', 'none');
+                repositoryInput.css('display', 'inline-block');
+                if (window.NX) {
+                  window.NX.Messages.warning('Could not get Repositories');
+                } else {
+                  console.warn('Could not get Repositories'); // eslint-disable-line no-console
+                }
+              },
+              complete: updateTargetUrl
+            });
+          }
+
+          function setFileToUpload(file) {
+            const selectedFileNameSpan = $('.drop-target span', context);
+            const fileName = file ? file.name : '';
+            fileToUpload = file;
+            selectedFileNameSpan.html(file ? file.name : 'No file selected');
+            const matchGroup = fileName.match(/^(.+)-(\d([^-]+(-SNAPSHOT)?))?(-(.+))?\.(.+)$/);
+            if (matchGroup) {
+              artifactIdInput.val(matchGroup[1]).focus();
+              versionInput.val(matchGroup[2]).focus();
+              classifierInput.val(matchGroup[6]).focus();
+              extensionInput.val(matchGroup[7]).focus();
+            } else {
+              const lastDot = fileName.lastIndexOf('.');
+              artifactIdInput.val(fileName.substring(0, lastDot)).focus();
+              versionInput.val('').focus();
+              classifierInput.val('').focus();
+              extensionInput.val(fileName.substring(lastDot + 1)).focus();
+            }
+            rawPathInput.val(fileName).focus();
+            return updateTargetUrl();
+          }
+
+          function updateTargetUrl() {
+            const uploadType = $('input[type=radio]:checked', context).val();
+            const repository = repositoryInput.val();
+            const uploadBaseUrl = `${baseUrl}/repository/${repository}`;
+            let path;
+            switch (uploadType) {
+              case 'gav':
+                path = getTargetPathFromGAV();
+                break;
+              case 'raw':
+              default:
+                path = rawPathInput.val();
+                break;
+            }
+            targetUrl.val(`${uploadBaseUrl}/${path}`);
+            targetUrl.trigger('change');
+            return true;
+          }
+
+          function getTargetPathFromGAV() {
+            const groupIdInput = $('input[name=groupId]', context);
+            const groupId = groupIdInput.val().split('.').join('/');
+            const artifactId = artifactIdInput.val();
+            const version = versionInput.val();
+            const classifier = classifierInput.val();
+            const extension = extensionInput.val();
+            const file = `${artifactId}-${version}${classifier ? `-${classifier}` : ''}.${extension}`;
+            return `${groupId}/${artifactId}/${version}/${file}`;
+          }
+
+          function uploadFile(file, target) {
+            const progress = $('main section.upload-progress', context);
+            const progressBar = progress.find('div');
+
+            uploadButton.css('display', 'none');
+            const reader = new FileReader();
+            reader.onload = () => {
+              $.ajax({
+                url: target,
+                type: 'PUT',
+                contentType: file.type,
+                data: new DataView(reader.result),
+                processData: false,
+                xhr: () => {
+                  const xhr = new window.XMLHttpRequest();
+                  xhr.upload.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                      progressBar.css('width', `${(event.loaded / event.total) * 100}%`);
+                      progress.css('display', 'block');
+                    }
+                  }, false);
+                  return xhr;
+                },
+                success: () => {
+                  if (window.NX) {
+                    window.NX.Messages.success('Upload successful');
+                  } else {
+                    console.log('Upload successful'); // eslint-disable-line no-console
+                  }
+                },
+                error: (xhr, ajaxOptions, error) => {
+                  if (window.NX) {
+                    window.NX.Messages.error(error);
+                  } else {
+                    console.error(error); // eslint-disable-line no-console
+                  }
+                },
+                complete: () => {
+                  progress.css('display', 'none');
+                  uploadButton.css('display', 'inline-block');
+                }
+              });
+            };
+            reader.readAsArrayBuffer(file);
+          }
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <img class="x-header-icon nx-icon-feature-browse-browse-components-x32" alt="Upload" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
+        <div>
+          <span class="nx-feature-name">Upload Artifact</span>
+          <span class="nx-feature-description">Upload a file from your computer to a repository</span>
+        </div>
+      </header>
+      <section title="Upload format">
+        <h1>Upload format</h1>
+        <button name="gav-toggle">GAV (Maven)</button>
+        <button name="raw-toggle">Raw</button>
+      </section>
+      <div class="content">
+        <section title="File to upload">
+          <h2>File to upload</h2>
+          <div class="drop-target">
+            <h1>Drop a file or click here</h1>
+            <span>No file selected</span>
+            <label for="file">File to upload</label>
+            <input id="file" name="file" type="file"/>
+          </div>
+        </section>
+        <section title="Target Repository">
+          <h2>Target Repository</h2>
+          <label for="repository">Repository</label>
+          <input id="repository" name="repository" type="text" class="x-form-text" placeholder="repository"/>
+          <select name="repository-list"></select>
+        </section>
+        <section id="gav" title="Maven GAV Upload" class="upload-format">
+          <h3>Maven GAV Upload</h3>
+          <header>
+            <input id="gav-format" name="format" type="radio" value="gav"/>
+            <label for="gav-format">Maven GAV Upload</label>
+          </header>
+          <div>
+            <label for="gav-groupId">GroupId</label>
+            <input id="gav-groupId" name="groupId" type="text" class="x-form-field x-form-text" placeholder="groupId"/>
+            <br/>
+            <label for="gav-artifactId">ArtifactId</label>
+            <input id="gav-artifactId" name="artifactId" type="text" class="x-form-text" placeholder="artifactId"/>
+            <br/>
+            <label for="gav-version">Version</label>
+            <input id="gav-version" name="version" type="text" class="x-form-text" placeholder="version"/>
+            <br/>
+            <label for="gav-classifier">Classifier</label>
+            <input id="gav-classifier" name="classifier" type="text" class="x-form-text" placeholder="classifier"/>
+            <br/>
+            <label for="gav-extension">Extension</label>
+            <input id="gav-extension" name="extension" type="text" class="x-form-text" placeholder="extension"/>
+          </div>
+        </section>
+        <section id="raw" title="Raw file upload" class="upload-format">
+          <h3>Raw file upload</h3>
+          <header>
+            <input id="raw-format" name="format" type="radio" value="raw"/>
+            <label for="raw-format">Raw Upload</label>
+          </header>
+          <div>
+            <label for="raw-path">Raw path</label>
+            <input id="raw-path" name="path" type="text" class="x-form-text" placeholder="path"/>
+          </div>
+        </section>
+        <section title="Upload progress" class="upload-progress">
+          <h2>Upload progress</h2>
+          <input name="url" type="hidden" disabled/>
+        </section>
+        <section title="Upload">
+          <h2>Upload</h2>
+          <button name="upload" disabled>Upload</button>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
