@@ -40,9 +40,9 @@ By all means! If you have a fix or an improvement, pull requests are welcome. We
 
 #### Browsers we tried
 
-| Google Chrome 58.0 | Chromium 58.0 | Opera 45.0 | Microsoft Edge 38 | Mozilla Firefox 53.0 | IE11 |
-| :----------------: | :-----------: | :--------: | :---------------: | :------------------: | :--: |
-| ✔                  | ✔             | ✔          | ✔ (weird looks)   | ✔ (visual glitches)  | ✖    |
+| Google Chrome 58.0 | Chromium 58.0 | Opera 45.0 | Microsoft Edge 38 | Mozilla Firefox 53.0 | Safari 10.1.1 | IE11 |
+| :----------------: | :-----------: | :--------: | :---------------: | :------------------: | :-----------: | :--: |
+| ✔                  | ✔             | ✔          | ✔ (weird looks)   | ✔ (visual glitches)  | ✔             | ✖    |
 
 #### Checked Nexus 3 Versions
 - PRO 3.2.1-01
